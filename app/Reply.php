@@ -16,7 +16,6 @@ class Reply extends Model
     return $this->belongsTo(Discussion::class);
   }
 
-
   public function user()
   {
     return $this->belongsTo(User::class);
@@ -29,18 +28,10 @@ class Reply extends Model
 
   public function is_liked_by_auth_user()
   {
-    $id = auth()->user()->id;
-
-    $likers = array();
-
-    foreach ($this->likes as $like) {
-      array_push($likers, $like->user_id);
-    }
-
-    if (in_array($id, $likers)) {
-      return true;
-    } else {
+    if (! auth()->check()) {
       return false;
     }
+
+    return $this->likes()->where('user_id', auth()->id())->exists();
   }
 }

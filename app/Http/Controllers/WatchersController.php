@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Discussion;
 use App\Watcher;
-use Illuminate\Http\Request;
 
 class WatchersController extends Controller
 {
     public function watch($id)
     {
-      Watcher::create([
+      Discussion::findOrFail($id);
+
+      Watcher::firstOrCreate([
         'discussion_id' => $id,
-        'user_id' => auth()->user()->id,
+        'user_id' => auth()->id(),
       ]);
 
       session()->flash('success', 'You are watching this discussion.');
@@ -21,9 +23,9 @@ class WatchersController extends Controller
 
     public function unwatch($id)
     {
-      $watcher = Watcher::where('discussion_id', $id)->where('user_id', auth()->user()->id);
-
-      $watcher->delete();
+      Watcher::where('discussion_id', $id)
+        ->where('user_id', auth()->id())
+        ->delete();
 
       session()->flash('success', 'You are no longer watching this discussion.');
 

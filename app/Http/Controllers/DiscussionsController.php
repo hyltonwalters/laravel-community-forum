@@ -7,6 +7,7 @@ use App\Reply;
 use App\Discussion;
 use Illuminate\Support\Str;
 use App\Notifications\NewReplyAdded;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use App\Http\Requests\CreateDiscussionsRequest;
 use App\Http\Requests\UpdateDiscussionsRequest;
@@ -17,32 +18,12 @@ class DiscussionsController extends Controller
   {
     $this->middleware(['auth'])->only(['edit', 'store', 'update', 'create']);
   }
-  /**
-   * Display a listing of the resource.
-   *
-   * @return \Illuminate\Http\Response
-   */
-  public function index()
-  {
-    //
-  }
 
-  /**
-   * Show the form for creating a new resource.
-   *
-   * @return \Illuminate\Http\Response
-   */
   public function create()
   {
     return view('discussions.create');
   }
 
-  /**
-   * Store a newly created resource in storage.
-   *
-   * @param  \Illuminate\Http\Request  $request
-   * @return \Illuminate\Http\Response
-   */
   public function store(CreateDiscussionsRequest $request)
   {
     auth()->user()->discussions()->create([
@@ -57,15 +38,8 @@ class DiscussionsController extends Controller
     return redirect()->back();
   }
 
-  /**
-   * Display the specified resource.
-   *
-   * @param  int  $id
-   * @return \Illuminate\Http\Response
-   */
   public function show(Discussion $discussion)
   {
-    // $discussion = Discussion::where('slug', $slug)->first();
     $best_answer = $discussion->replies()->where('best_answer', 1)->first();
 
     return view('discussions.show')
@@ -73,71 +47,53 @@ class DiscussionsController extends Controller
       ->with('best_answer', $best_answer);
   }
 
-  /**
-   * Show the form for editing the specified resource.
-   *
-   * @param  int  $id
-   * @return \Illuminate\Http\Response
-   */
   public function edit(Discussion $discussion)
   {
+    abort_unless($discussion->user_id === auth()->id(), 403);
+
     return view('discussions.create')->with('discussion', $discussion);
   }
 
-  /**
-   * Update the specified resource in storage.
-   *
-   * @param  \Illuminate\Http\Request  $request
-   * @param  int  $id
-   * @return \Illuminate\Http\Response
-   */
   public function update(UpdateDiscussionsRequest $request, Discussion $discussion)
   {
+    abort_unless($discussion->user_id === auth()->id(), 403);
 
     $discussion->title = $request->title;
     $discussion->content = $request->content;
     $discussion->channel_id = $request->channel_id;
     $discussion->slug = Str::slug($request->title);
-
     $discussion->save();
-
 
     session()->flash('success', 'Updated discussion successfully.');
 
     return redirect('/forum');
   }
 
-  /**
-   * Remove the specified resource from storage.
-   *
-   * @param  int  $id
-   * @return \Illuminate\Http\Response
-   */
-  public function destroy(Discussion $discussion)
-  {
-    //
-  }
-
   public function reply($id)
   {
-    $d = Discussion::find($id);
-
-    $reply = Reply::create([
-      'user_id' => auth()->user()->id,
-      'discussion_id' => $id,
-      'content' => request()->reply,
+    request()->validate([
+      'reply' => 'required|string',
     ]);
 
-    $reply->user->points += 25;
-    $reply->user->save();
+    $discussion = Discussion::findOrFail($id);
 
-    $watchers = array();
+    DB::transaction(function () use ($discussion) {
+      $reply = Reply::create([
+        'user_id' => auth()->id(),
+        'discussion_id' => $discussion->id,
+        'content' => request()->reply,
+      ]);
 
-    foreach ($d->watchers as $watcher) {
-      array_push($watchers, User::find($watcher->user_id));
+      $reply->user->increment('points', 25);
+    });
+
+    $watchers = User::whereIn('id', $discussion->watchers()->pluck('user_id'))
+      ->where('id', '!=', auth()->id())
+      ->get();
+
+    if ($watchers->isNotEmpty()) {
+      Notification::send($watchers, new NewReplyAdded($discussion));
     }
-
-    Notification::send($watchers, new NewReplyAdded($d));
 
     session()->flash('success', 'Replied to discussion.');
 

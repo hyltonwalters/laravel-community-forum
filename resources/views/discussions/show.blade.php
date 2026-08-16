@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+@php($markdown = app(\App\Support\MarkdownRenderer::class))
 <h3 class="card-header bg-light border-dark text-center">{{ $discussion->title }}</h3>
 <div class="card my-4">
   <div class="card-header">
@@ -12,11 +13,16 @@
     <div class="row float-right">
       <div class="col-md-6 p-0">
         @if ($discussion->is_being_watched_by_auth_user())
-        <a href="{{ route('discussion.unwatch', $discussion->id) }}"
-          class="btn btn-outline-dark bg-white text-dark btn-sm mr-2">Unwatch</a>
+        <form action="{{ route('discussion.unwatch', $discussion->id) }}" method="POST" class="d-inline">
+          @csrf
+          @method('DELETE')
+          <button type="submit" class="btn btn-outline-dark bg-white text-dark btn-sm mr-2">Unwatch</button>
+        </form>
         @else
-        <a href="{{ route('discussion.watch', $discussion->id) }}"
-          class="btn btn-outline-dark bg-white btn-sm text-dark mr-2">Watch</a>
+        <form action="{{ route('discussion.watch', $discussion->id) }}" method="POST" class="d-inline">
+          @csrf
+          <button type="submit" class="btn btn-outline-dark bg-white btn-sm text-dark mr-2">Watch</button>
+        </form>
         @endif
       </div>
       @if($discussion->user_id == auth()->user()->id)
@@ -36,7 +42,7 @@
     </h4>
     <hr>
     <p class="text-center">
-      {!! Markdown::convertToHtml($discussion->content) !!}
+      {!! $markdown->render($discussion->content) !!}
     </p>
   </div>
 
@@ -51,7 +57,7 @@
       <h3 class="text-center text-white pb-3">BEST ANSWER</h3>
     </div>
     <div class="card-body border-info">
-      {!! Markdown::convertToHtml($best_answer->content) !!}
+      {!! $markdown->render($best_answer->content) !!}
     </div>
   </div>
   @endif
@@ -81,8 +87,11 @@
     @endif
     @endif
     @if (auth()->user()->id == $discussion->user->id)
-    <a href="{{ route('discussion.best_answer', $r->id) }}"
-      class="float-right btn btn-outline-dark bg-white text-dark btn-sm">Mark as best answer</a>
+    <form action="{{ route('discussion.best_answer', $r->id) }}" method="POST" class="float-right">
+      @csrf
+      @method('PATCH')
+      <button type="submit" class="btn btn-outline-dark bg-white text-dark btn-sm">Mark as best answer</button>
+    </form>
     @endif
     @endauth
     @endif
@@ -90,18 +99,25 @@
 
   <div class="card-body">
     <p class="text-center">
-      {!! Markdown::convertToHtml($r->content) !!}
+      {!! $markdown->render($r->content) !!}
     </p>
   </div>
   <div class="card-footer">
 
     @auth
     @if($r->is_liked_by_auth_user())
-    <a href="{{ route('reply.unlike', $r->id) }}" class="btn btn-danger btn-sm">Unlike &nbsp;<span
-        class="badge badge-light">{{ $r->likes->count() }}</span></a>
+    <form action="{{ route('reply.unlike', $r->id) }}" method="POST" class="d-inline">
+      @csrf
+      @method('DELETE')
+      <button type="submit" class="btn btn-danger btn-sm">Unlike &nbsp;<span
+          class="badge badge-light">{{ $r->likes->count() }}</span></button>
+    </form>
     @else
-    <a href="{{ route('reply.like', $r->id) }}" class="btn btn-success btn-sm">Like &nbsp;<span
-        class="badge badge-light">{{ $r->likes->count() }}</span></a>
+    <form action="{{ route('reply.like', $r->id) }}" method="POST" class="d-inline">
+      @csrf
+      <button type="submit" class="btn btn-success btn-sm">Like &nbsp;<span
+          class="badge badge-light">{{ $r->likes->count() }}</span></button>
+    </form>
     @endif
     @endauth
 

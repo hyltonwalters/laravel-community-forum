@@ -3,108 +3,64 @@
 namespace App\Http\Controllers;
 
 use App\Channel;
-use Illuminate\Support\Str;
 use App\Http\Requests\CreateChannelsRequest;
+use Illuminate\Support\Str;
 
 class ChannelsController extends Controller
 {
-  public function __construct()
-  {
-    $this->middleware(['auth', 'admin']);
-  }
-  /**
-   * Display a listing of the resource.
-   *
-   * @return \Illuminate\Http\Response
-   */
-  public function index()
-  {
-    return view('channels.index');
-  }
+    public function __construct()
+    {
+        $this->middleware(['auth', 'admin']);
+    }
 
-  /**
-   * Show the form for creating a new resource.
-   *
-   * @return \Illuminate\Http\Response
-   */
-  public function create()
-  {
-    return view('channels.create');
-  }
+    public function index()
+    {
+        return view('channels.index');
+    }
 
-  /**
-   * Store a newly created resource in storage.
-   *
-   * @param  \Illuminate\Http\Request  $request
-   * @return \Illuminate\Http\Response
-   */
-  public function store(CreateChannelsRequest $request)
-  {
-    $channel = Channel::create([
-      'title' => $request->title,
-      'slug' => Str::slug($request->title)
-    ]);
+    public function create()
+    {
+        return view('channels.create');
+    }
 
-    session()->flash('success', 'Channel created successfully.');
+    public function store(CreateChannelsRequest $request)
+    {
+        $title = $request->validated()['title'];
 
-    return redirect('/channels');
-  }
+        Channel::create([
+            'title' => $title,
+            'slug' => Str::slug($title),
+        ]);
 
-  /**
-   * Display the specified resource.
-   *
-   * @param  int  $id
-   * @return \Illuminate\Http\Response
-   */
-  public function show()
-  {
-    //
-  }
+        session()->flash('success', 'Channel created successfully.');
 
-  /**
-   * Show the form for editing the specified resource.
-   *
-   * @param  int  $id
-   * @return \Illuminate\Http\Response
-   */
-  public function edit(Channel $channel)
-  {
-    return view('channels.create')->with('channel', $channel);
-  }
+        return redirect('/channels');
+    }
 
-  /**
-   * Update the specified resource in storage.
-   *
-   * @param  \Illuminate\Http\Request  $request
-   * @param  int  $id
-   * @return \Illuminate\Http\Response
-   */
-  public function update(Channel $channel)
-  {
+    public function edit(Channel $channel)
+    {
+        return view('channels.create')->with('channel', $channel);
+    }
 
-    $channel->title = request()->title;
-    $channel->slug = Str::slug(request()->title);
+    public function update(CreateChannelsRequest $request, Channel $channel)
+    {
+        $title = $request->validated()['title'];
 
-    $channel->save();
+        $channel->title = $title;
+        $channel->slug = Str::slug($title);
+        $channel->save();
 
+        session()->flash('success', 'Channel updated successfully.');
 
-    session()->flash('success', 'Channel updated successfully.');
+        return redirect('/channels');
+    }
 
-    return redirect('/channels');
-  }
+    public function destroy(Channel $channel)
+    {
+        $channel->delete();
 
-  /**
-   * Remove the specified resource from storage.
-   *
-   * @param  int  $id
-   * @return \Illuminate\Http\Response
-   */
-  public function destroy(Channel $channel)
-  {
-    $channel->delete();
+        session()->flash('success', 'Channel deleted successfully.');
 
-    session()->flash('success', 'Channel deleted successfully.');
-
-    return redirect('/channels');
-  }
+        return redirect('/channels');
+    }
 }
