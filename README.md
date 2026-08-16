@@ -1,3 +1,7 @@
-<p><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="300"></p>
+<p align="center">
+  <img src="docs/social-preview.png"
+       alt="Laravel Community Forum"
+       width="100%">
+</p>
 
-<p>A complete forum with channels, discussions, replies, likes, open/closed, watchers and email notifications made with Laravel 7 and Bootstrap 4.</p>
+# Laravel Community Forum
