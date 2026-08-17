@@ -1,12 +1,28 @@
-<p align="center">
-  <img src="docs/social-preview.png" alt="Laravel Community Forum" width="100%">
-</p>
+![Laravel Community Forum banner](https://raw.githubusercontent.com/hyltonwalters/laravel-community-forum/master/docs/social-preview.png)
 
 # Laravel Community Forum
 
 A Laravel community forum with channels, discussions, replies, likes, watchers, best-answer workflows, notifications and social authentication.
 
 Originally built on Laravel 7, this project has been deliberately modernized and security-hardened through successive framework upgrades to **Laravel 12**. The goal of the modernization work is to preserve the original forum domain while improving authorization, mutation safety, dependency health, automated testing and build reproducibility.
+
+## Live demo
+
+- **Live application:** https://laravel-community-forum.onrender.com
+- **Source:** https://github.com/hyltonwalters/laravel-community-forum
+- **Hosting:** Render
+- **Database:** Neon PostgreSQL
+
+### Demo login
+
+```text
+Email: john@doe.com
+Password: password
+```
+
+The public deployment is intended as a portfolio demonstration of the forum workflow and modernization work. The hosted database is seeded with sample discussions, replies, channels and users so the application can be explored without creating an account first.
+
+> **Note:** Render free services can sleep when idle, so the first request after a period of inactivity may take longer than normal.
 
 ## Modernization highlights
 
