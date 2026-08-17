@@ -31,7 +31,7 @@ RUN COMPOSER_PROCESS_TIMEOUT=1200 composer install \
     --prefer-dist \
     --no-progress \
     --no-scripts \
-    --optimize-autoloader
+    --no-autoloader
 
 COPY . .
 COPY --from=assets /app/public/build ./public/build
