@@ -3,7 +3,8 @@ name: Laravel 12 CI
 on:
   push:
     branches:
-      - portfolio-hardening
+      - master
+      - deploy/render-demo
   pull_request:
     branches:
       - master
@@ -57,3 +58,14 @@ jobs:
 
       - name: Build production assets
         run: npm run build
+
+  render-image:
+    name: Render image build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Render image
+        run: docker build --pull -f Dockerfile.render -t laravel-community-forum-render .

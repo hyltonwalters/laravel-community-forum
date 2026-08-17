@@ -1,6 +1,8 @@
-![Laravel Community Forum banner](https://raw.githubusercontent.com/hyltonwalters/laravel-community-forum/master/docs/social-preview.png)
+![Laravel Community Forum banner](https://raw.githubusercontent.com/hyltonwalters/laravel-community-forum/deploy/render-demo/docs/social-preview.png)
 
 # Laravel Community Forum
+
+[![Laravel 12 CI](https://github.com/hyltonwalters/laravel-community-forum/actions/workflows/modernization-checkpoint.yml/badge.svg?branch=deploy%2Frender-demo)](https://github.com/hyltonwalters/laravel-community-forum/actions/workflows/modernization-checkpoint.yml?query=branch%3Adeploy%2Frender-demo)
 
 A Laravel community forum with channels, discussions, replies, likes, watchers, best-answer workflows, notifications and social authentication.
 
@@ -14,6 +16,8 @@ Originally built on Laravel 7, this project has been deliberately modernized and
 - **Database:** Neon PostgreSQL
 
 ### Demo login
+
+Use the non-admin demo account:
 
 ```text
 Email: john@doe.com
@@ -34,13 +38,16 @@ The public deployment is intended as a portfolio demonstration of the forum work
 - Made likes and discussion watchers idempotent and backed them with database uniqueness constraints.
 - Added transactional handling for reply points, best-answer points and watcher notifications.
 - Replaced the legacy Markdown package with CommonMark 2 and added regression coverage for unsafe raw HTML.
-- Added GitHub Actions verification for dependency audits, Laravel tests and the production frontend build.
+- Added GitHub Actions verification for dependency audits, Laravel tests, the production frontend build and the deployment Docker image.
+- Added a containerized Render deployment backed by Neon PostgreSQL.
 
 ## Current stack
 
 **Backend:** PHP 8.2+, Laravel 12, Eloquent ORM, Laravel Socialite, CommonMark 2  
 **Frontend:** Vite, Bootstrap 5, Sass  
-**Testing:** PHPUnit 11, Laravel feature tests, SQLite in-memory test database  
+**Database:** PostgreSQL on Neon for the hosted demo; SQLite in-memory for automated tests  
+**Deployment:** Docker, Render  
+**Testing:** PHPUnit 11, Laravel feature tests  
 **Quality:** Composer validation/audit, npm audit, production asset build, GitHub Actions CI
 
 ## Forum capabilities
@@ -67,6 +74,7 @@ composer audit --locked
 php artisan test
 npm audit --audit-level=high
 npm run build
+docker build --pull -f Dockerfile.render -t laravel-community-forum-render .
 ```
 
 ## Local setup

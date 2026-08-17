@@ -1,0 +1,47 @@
+FROM node:24-bookworm-slim AS assets
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --no-fund --no-audit
+COPY vite.config.js ./
+COPY resources ./resources
+COPY public ./public
+RUN npm run build
+
+FROM php:8.2-cli-bookworm
+WORKDIR /app
+
+ENV APP_ENV=production \
+    APP_DEBUG=false \
+    LOG_CHANNEL=stderr \
+    DB_CONNECTION=pgsql \
+    CACHE_DRIVER=file \
+    SESSION_DRIVER=file \
+    QUEUE_CONNECTION=sync
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libpq-dev libonig-dev unzip ca-certificates \
+    && docker-php-ext-install pdo_pgsql mbstring \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY composer.json composer.lock ./
+RUN COMPOSER_PROCESS_TIMEOUT=1200 composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --no-progress \
+    --no-scripts \
+    --no-autoloader
+
+COPY . .
+COPY --from=assets /app/public/build ./public/build
+
+RUN COMPOSER_PROCESS_TIMEOUT=1200 composer dump-autoload --no-dev --optimize \
+    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && chmod -R ug+rwX storage bootstrap/cache
+
+COPY deploy/render-start.sh /usr/local/bin/render-start
+RUN chmod +x /usr/local/bin/render-start
+
+EXPOSE 10000
+CMD ["/usr/local/bin/render-start"]
